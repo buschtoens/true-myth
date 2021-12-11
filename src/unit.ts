@@ -5,19 +5,8 @@
   @module
  */
 
-const TagSymbol = Symbol('BrandTag');
-
-/**
- * Create a unique, nominalish type.
- * @internal
- */
-class Brand<Tag extends string> {
-  protected readonly [TagSymbol]: Tag;
-
-  constructor(tag: Tag) {
-    this[TagSymbol] = tag;
-  }
-}
+declare const TypeName: unique symbol;
+type Opaque<T, K> = T & { [TypeName]: K };
 
 /**
   The `Unit` type exists for the cases where you want a type-safe equivalent of
@@ -29,6 +18,6 @@ class Brand<Tag extends string> {
   Equivalent to `()` or "unit" in many functional or functional-influenced
   languages.
  */
-export const Unit = new Brand('unit');
-export type Unit = typeof Unit;
+export type Unit = Opaque<unknown, 'unit'>;
+export const Unit = Object.create(null) as Unit;
 export default Unit;

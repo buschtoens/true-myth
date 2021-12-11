@@ -62,7 +62,7 @@ class ResultImpl<T, E> {
     *not* call the `Ok` constructor with `null` or `undefined` to get that
     result (the type system won't allow you to construct it that way). Instead,
     for convenience, you can simply call {@linkcode ok}, which will construct
-    the type correctly.
+    the type correctly given a `null` or `undefined`.
 
     @param value The value to wrap in an `Ok`.
 
@@ -72,12 +72,14 @@ class ResultImpl<T, E> {
 
     @throws If you pass `null`.
    */
-  static ok<T, E>(value?: T | null): Result<T, E> {
-    if (isVoid(value)) {
-      throw new Error('Tried to construct `Ok` with `null`. Maybe you want `Maybe.Nothing`?');
-    }
+  static ok<T, E>(
+    value?: T | null | undefined
+  ): T extends null | undefined ? Result<Unit, E> : Result<T, E> {
+    type Output = T extends null | undefined ? Result<Unit, E> : Result<T, E>;
 
-    return new ResultImpl<T, E>(['Ok', value]) as Result<T, E>;
+    return isVoid(value)
+      ? (new ResultImpl<Unit, E>([Variant.Ok, Unit]) as Output)
+      : (new ResultImpl<T, E>([Variant.Ok, value as NonNullable<T>]) as Output);
   }
 
   /**
@@ -103,14 +105,14 @@ class ResultImpl<T, E> {
 
     @throws If you pass `null` or `undefined`.
    */
-  static err<T, E>(error: E | null): Result<T, E> {
-    if (isVoid(error)) {
-      throw new Error(
-        'Tried to construct `Err` with `null` or `undefined`. Maybe you want `Maybe.Nothing`?'
-      );
-    }
+  static err<T, E>(
+    error?: E | null | undefined
+  ): E extends null | undefined ? Result<T, Unit> : Result<T, E> {
+    type Output = E extends null | undefined ? Result<T, Unit> : Result<T, E>;
 
-    return new ResultImpl<T, E>(['Err', error]) as Result<T, E>;
+    return isVoid(error)
+      ? (new ResultImpl<T, Unit>([Variant.Err, Unit]) as Output)
+      : (new ResultImpl<T, E>([Variant.Err, error]) as Output);
   }
 
   /** Distinguish between the {@linkcode Variant.Ok} and {@linkcode Variant.Err} {@linkcode Variant variants}. */
@@ -357,11 +359,7 @@ export function tryOr<T, E>(
   @typeparam T The type of the item contained in the `Result`.
   @param value The value to wrap in a `Result.Ok`.
  */
-export function ok<T, E>(): Result<Unit, E>;
-export function ok<T, E>(value: T): Result<T, E>;
-export function ok<T, E>(value?: T): Result<Unit, E> | Result<T, E> {
-  return value === undefined ? Result.ok(Unit) : Result.ok(value);
-}
+export const ok = ResultImpl.ok;
 
 /**
   Create an instance of {@linkcode Err}.

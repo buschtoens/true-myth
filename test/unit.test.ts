@@ -2,8 +2,8 @@ import { expectTypeOf } from 'expect-type';
 import Unit from 'true-myth/unit';
 
 test('the unit type', () => {
-  expectTypeOf<Unit>().toEqualTypeOf<{}>();
-  expectTypeOf({}).not.toMatchTypeOf(Unit);
+  expectTypeOf<Unit>().not.toEqualTypeOf<{}>();
+  expectTypeOf({}).not.toEqualTypeOf(Unit);
 
-  expect(Unit).not.toEqual({});
+  expect(Unit).toEqual({});
 });
